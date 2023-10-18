@@ -1,0 +1,48 @@
+{
+  "name": "data_preparation",
+  "type": "node",
+  "child_configs": [
+      {
+        "name": "data_loader",
+        "type": "composite",
+        "child_configs": [
+          {
+            "name": "local",
+            "type": "leaf",
+            "args": {
+              "source_type": "csv",
+              "path": "data/test_time_series_data.csv"
+            }
+          }
+        ],
+        "additional_args": {
+          "joining_columns": ["series_id","date"]
+        }
+      },
+      {
+        "name": "data_converter",
+        "type": "composite",
+        "child_configs": [
+          {
+            "name": "time_series",
+            "type": "leaf",
+            "args": {
+              "series_id_col": "series_id",
+              "date_col": "date",
+              "y_col": "y",
+              "regressor_cols": [],
+              "date_parser": "%Y-%m-%d"
+            }
+          },
+           {
+            "name": "time_series_backtest",
+            "type": "leaf",
+            "args": {
+              "train_window_length": 12,
+              "max_test_window_length": 1
+            }
+          }
+        ]
+      }
+  ]
+}

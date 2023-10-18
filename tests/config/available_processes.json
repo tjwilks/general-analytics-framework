@@ -1,0 +1,26 @@
+{
+  "data_preparation": {
+    "process_class": "DataPreparationProcess",
+    "required": [
+      {
+        "data_loader": {
+          "process_class": "DataLoaderComposite",
+          "strategies": {
+            "local": "LocalDataLoader"
+          }
+        }
+      }
+    ],
+    "optional": [
+      {
+        "data_converter": {
+          "process_class": "DataLoaderComposite",
+          "strategies": {
+            "time_series": "TimeseriesDatasetConverter",
+            "time_series_backtest": "TimeseriesBacktestDatasetConverter"
+          }
+        }
+      }
+    ]
+  }
+}
