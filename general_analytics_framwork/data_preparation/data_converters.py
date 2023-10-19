@@ -1,18 +1,10 @@
-from abc import ABC, abstractmethod
-from typing import List
+from general_analytics_framwork.base_processes import AbstractComponent
 from old_code.backtesting_central_analysis_subprocess_mediator import (
     TimeseriesDataset, TimeseriesBacktestDataset
 )
 
 
-class AbstractDataConvertor(ABC):
-
-    @abstractmethod
-    def run(self, data):
-        pass
-
-
-class TimeseriesConverter(AbstractDataConvertor):
+class TimeseriesConverter(AbstractComponent):
 
     def __init__(self, series_id_col, date_col, y_col, regressor_cols, date_parser):
         self.series_id_col = series_id_col
@@ -38,15 +30,15 @@ class TimeseriesConverter(AbstractDataConvertor):
         return time_series_datasets
 
 
-class TimeseriesBacktestConverter(AbstractDataConvertor):
+class TimeseriesBacktestConverter(AbstractComponent):
 
     def __init__(self, train_window_length, max_test_window_length):
         self.train_window_length = train_window_length
         self.max_test_window_length = max_test_window_length
 
-    def run(self, time_series_dataset_list: List[TimeseriesDataset]):
+    def run(self, data):
         time_series_backtest_dataset_list = []
-        for time_series_dataset in time_series_dataset_list:
+        for time_series_dataset in data:
             time_series_backtest_dataset = TimeseriesBacktestDataset(
                 time_series_dataset=time_series_dataset,
                 train_window_length=self.train_window_length,
