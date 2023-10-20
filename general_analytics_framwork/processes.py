@@ -10,7 +10,7 @@ from general_analytics_framwork.data_preparation.data_converters import (
     TimeseriesConverter, TimeseriesBacktestConverter
 )
 from general_analytics_framwork.iterators import (
-    SequenceIterator, ParallelIterator, DataSequenceIterator
+    SequenceIterator, DataSequenceIterator
 )
 
 
@@ -18,9 +18,6 @@ class DataLoaderComposite(ParallelProcess):
 
     AVAILABLE_STRATEGIES = {
         "local": LocalDataLoader
-    }
-    AVAILABLE_ITERATORS = {
-        "parallel": ParallelIterator
     }
 
     def __init__(self, children, iterator, joining_columns):
@@ -60,9 +57,6 @@ class DataPreparationProcess(SequenceProcess):
         "data_loader": DataLoaderComposite,
         "data_converter": DataConverterComposite
     }
-    AVAILABLE_ITERATORS = {
-        "sequence": SequenceIterator
-    }
 
     def __init__(self, children, iterator):
         assert type(children[0]) == DataLoaderComposite, \
@@ -70,3 +64,4 @@ class DataPreparationProcess(SequenceProcess):
             "DataLoaderComposite"
 
         super().__init__(children=children, iterator=iterator)
+

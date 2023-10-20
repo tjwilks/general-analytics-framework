@@ -1,4 +1,7 @@
 from abc import ABC, abstractmethod
+from general_analytics_framwork.iterators import (
+    SequenceIterator, ParallelIterator
+)
 
 
 class AbstractComponent(ABC):
@@ -29,12 +32,20 @@ class AbstractNode(AbstractComponent):
 
 class SequenceProcess(AbstractNode):
 
+    AVAILABLE_ITERATORS = {
+        "sequence": SequenceIterator
+    }
+
     def run(self, data=None):
         output = self.iterator.iterate(self, data)
         return output
 
 
 class ParallelProcess(AbstractNode):
+
+    AVAILABLE_ITERATORS = {
+        "parallel": ParallelIterator
+    }
 
     def run(self, data=None):
         output = self.iterator.iterate(self, data)
