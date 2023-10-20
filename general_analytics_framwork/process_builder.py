@@ -61,7 +61,8 @@ class ProcessBuilder:
             process = process_class(**config.other_args)
         return process
 
-    def build_iterator(self, iterator_config, available_iterators):
+    @staticmethod
+    def build_iterator(iterator_config, available_iterators):
         iterator_class = available_iterators[iterator_config.name]
         iterator = iterator_class(**iterator_config.args)
         return iterator
