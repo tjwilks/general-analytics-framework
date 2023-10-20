@@ -8,14 +8,14 @@ class ProcessBuilder:
             self,
             config: Union[NodeConfig, LeafConfig],
             available_processes,
-            available_iterators=None
+            available_iterators
     ):
         if config.type == "node":
             process = self.build_node(config, available_processes, available_iterators)
         elif config.type == "composite":
             process = self.build_composite(config, available_processes, available_iterators)
         elif config.type == "leaf":
-            process = self.build_leaf(config, available_processes)
+            process = self.build_leaf(config, available_processes, available_iterators)
         else:
             raise ValueError("child 'type' must be 'node', 'composite', "
                              "or 'leaf'")
@@ -38,7 +38,7 @@ class ProcessBuilder:
         process = process_class(
             **process_children,
             iterator=iterator,
-            **config.additional_args
+            **config.other_args
         )
         return process
 
@@ -48,22 +48,32 @@ class ProcessBuilder:
             available_iterators=available_iterators
         )
         process_class = available_processes[config.name]
-        process_children = [
-            self.build(
-                child,
-                process_class.AVAILABLE_STRATEGIES
-            ) for child in config.children
-        ]
+        process_children = []
+        for child_config in config.children:
+            child_class = process_class.AVAILABLE_STRATEGIES[child_config.name]
+            child = self.build(
+                child_config,
+                process_class.AVAILABLE_STRATEGIES,
+                child_class.AVAILABLE_ITERATORS
+            )
+            process_children.append(child)
         process = process_class(
             process_children,
             iterator,
-            **config.additional_args
+            **config.other_args
         )
         return process
 
-    def build_leaf(self, config, available_processes):
+    def build_leaf(self, config, available_processes, available_iterators):
         process_class = available_processes[config.name]
-        process = process_class(**config.args)
+        if available_iterators:
+            iterator = self.build_iterator(
+                iterator_config=config.iterator_config,
+                available_iterators=available_iterators
+            )
+            process = process_class(**config.other_args, iterator=iterator)
+        else:
+            process = process_class(**config.other_args)
         return process
 
     def build_iterator(self, iterator_config, available_iterators):

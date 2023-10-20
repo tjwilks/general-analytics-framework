@@ -1,16 +1,10 @@
 from abc import ABC, abstractmethod
 import pandas as pd
 import os
+from general_analytics_framwork.base_processes import AbstractComponent
 
 
-class AbstractDataLoaderStrategy(ABC):
-
-    @abstractmethod
-    def run(self):
-        pass
-
-
-class LocalDataLoader(AbstractDataLoaderStrategy):
+class LocalDataLoader(AbstractComponent):
     """
     DataLoader class to load data from different sources.
 
@@ -19,6 +13,7 @@ class LocalDataLoader(AbstractDataLoaderStrategy):
             Load data from a source based on source type.
 
     """
+
     def __init__(self, source_type, path):
         self.source_type = source_type
         self.path = path

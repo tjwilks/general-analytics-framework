@@ -4,8 +4,9 @@ from abc import ABC, abstractmethod
 class AbstractComponent(ABC):
 
     AVAILABLE_STRATEGIES = {}
+    AVAILABLE_ITERATORS = None
 
-    def __init__(self, iterator):
+    def __init__(self, iterator=None):
         self.iterator = iterator
 
     @abstractmethod

@@ -3,7 +3,7 @@ import json
 
 class NodeConfig:
 
-    def __init__(self, type, name, child_configs, iterator_config, additional_args=None):
+    def __init__(self, type, name, child_configs, iterator_config, other_args=None):
         self.type = type
         self.name = name
         self.children = []
@@ -16,17 +16,21 @@ class NodeConfig:
                 raise ValueError("child 'type' must be 'node' or 'leaf'")
             self.children.append(child)
         self.iterator_config = IteratorConfig(**iterator_config)
-        if additional_args:
-            self.additional_args = additional_args
+        if other_args:
+            self.other_args = other_args
         else:
-            self.additional_args = {}
+            self.other_args = {}
 
 
 class LeafConfig:
-    def __init__(self, type, name, args):
+    def __init__(self, type, name, other_args,  iterator_config=None):
         self.type = type
         self.name = name
-        self.args = args
+        if iterator_config:
+            self.iterator_config = IteratorConfig(**iterator_config)
+        else:
+            self.iterator_config = iterator_config
+        self.other_args = other_args
 
 
 class IteratorConfig:
