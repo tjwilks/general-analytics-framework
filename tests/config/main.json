@@ -4,7 +4,7 @@
   "child_configs": [
       {
         "name": "data_loader",
-        "type": "composite",
+        "type": "node",
         "child_configs": [
           {
             "name": "local",
@@ -24,7 +24,7 @@
       },
       {
         "name": "data_converter",
-        "type": "composite",
+        "type": "node",
         "child_configs": [
           {
             "name": "time_series",

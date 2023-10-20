@@ -10,7 +10,7 @@ from general_analytics_framwork.data_preparation.data_converters import (
     TimeseriesConverter, TimeseriesBacktestConverter
 )
 from general_analytics_framwork.iterators import (
-    AbstractIterator, SequenceIterator, ParallelIterator, DataSequenceIterator
+    SequenceIterator, ParallelIterator, DataSequenceIterator
 )
 
 
@@ -53,9 +53,6 @@ class DataConverterComposite(SequenceProcess):
         "data_sequence": DataSequenceIterator
     }
 
-    def __init__(self, children, iterator):
-        super().__init__(children=children, iterator=iterator)
-
 
 class DataPreparationProcess(SequenceProcess):
 
@@ -67,23 +64,9 @@ class DataPreparationProcess(SequenceProcess):
         "sequence": SequenceIterator
     }
 
-    def __init__(
-            self,
-            iterator: AbstractIterator,
-            data_loader: DataLoaderComposite,
-            data_converter: DataConverterComposite = None,
-    ):
-        self.data_loader = data_loader
-        self.data_converter = data_converter
-        children = [data_loader]
-        if data_converter:
-            children.append(data_converter)
+    def __init__(self, children, iterator):
+        assert type(children[0]) == DataLoaderComposite, \
+            "first child process of DataPreparation must be a " \
+            "DataLoaderComposite"
+
         super().__init__(children=children, iterator=iterator)
-
-
-class DataVisualisationProcess(ParallelProcess):
-
-    AVAILABLE_STRATEGIES = {
-        "data_loader": DataLoaderComposite,
-        "data_converter": DataConverterComposite
-    }
