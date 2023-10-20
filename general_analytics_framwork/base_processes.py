@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from general_analytics_framwork.iterators import (
-    SequenceIterator, ParallelIterator
+    SequenceIterator, ParallelIterator, ParallelAggregationIterator
 )
 
 
@@ -45,6 +45,16 @@ class ParallelProcess(AbstractNode):
 
     AVAILABLE_ITERATORS = {
         "parallel": ParallelIterator
+    }
+
+    def run(self, data=None):
+        self.iterator.iterate(self, data)
+
+
+class ParallelAggregateProcess(AbstractNode):
+
+    AVAILABLE_ITERATORS = {
+        "parallel_aggregation": ParallelAggregationIterator
     }
 
     def run(self, data=None):

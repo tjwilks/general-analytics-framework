@@ -1,9 +1,9 @@
 from general_analytics_framwork.base_processes import AbstractComponent
-from old_code.backtesting_central_analysis_subprocess_mediator import (
+from general_analytics_framwork.datasets import (
     TimeseriesDataset, TimeseriesBacktestDataset
 )
 from general_analytics_framwork.iterators import (
-    DataSequenceIterator, DataframeSequenceIterator
+    DataframeAggregationSequenceIterator, DataAggregationSequenceIterator
 )
 
 
@@ -17,7 +17,7 @@ class DataConverter(AbstractComponent):
 class TimeseriesConverter(DataConverter):
 
     AVAILABLE_ITERATORS = {
-        "dataframe_sequence": DataframeSequenceIterator
+        "dataframe_aggregation_sequence": DataframeAggregationSequenceIterator
     }
 
     def __init__(self, series_id_col, date_col, y_col, regressor_cols, date_parser, iterator):
@@ -44,7 +44,7 @@ class TimeseriesConverter(DataConverter):
 
 class TimeseriesBacktestConverter(DataConverter):
     AVAILABLE_ITERATORS = {
-        "data_sequence": DataSequenceIterator
+        "data_aggregation_sequence": DataAggregationSequenceIterator
     }
 
     def __init__(self, train_window_length, max_test_window_length, iterator):

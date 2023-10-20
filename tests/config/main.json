@@ -1,64 +1,107 @@
 {
-  "name": "data_preparation",
+  "name": "data_presentation",
   "type": "node",
   "child_configs": [
-      {
-        "name": "data_loader",
-        "type": "node",
-        "child_configs": [
+    {
+      "name": "data_preparation",
+      "type": "node",
+      "child_configs": [
           {
-            "name": "local",
-            "type": "leaf",
+            "name": "data_loader",
+            "type": "node",
+            "child_configs": [
+              {
+                "name": "local",
+                "type": "leaf",
+                "other_args": {
+                  "source_type": "csv",
+                  "path": "data/test_time_series_data.csv"
+                }
+              }
+            ],
+            "iterator_config": {
+                "name": "parallel_aggregation"
+            },
             "other_args": {
-              "source_type": "csv",
-              "path": "data/test_time_series_data.csv"
+              "joining_columns": ["series_id","date"]
+            }
+          },
+          {
+            "name": "data_converter",
+            "type": "node",
+            "child_configs": [
+              {
+                "name": "time_series",
+                "type": "leaf",
+                "other_args": {
+                  "series_id_col": "series_id",
+                  "date_col": "date",
+                  "y_col": "y",
+                  "regressor_cols": [],
+                  "date_parser": "%Y-%m-%d"
+                },
+                "iterator_config": {
+                  "name": "dataframe_aggregation_sequence",
+                  "args": {
+                    "series_id_col": "series_id"
+                  }
+              }
+              }
+            ],
+            "iterator_config": {
+              "name": "sequence"
             }
           }
-        ],
-        "iterator_config": {
-            "name": "parallel"
-        },
-        "other_args": {
-          "joining_columns": ["series_id","date"]
-        }
-      },
-      {
-        "name": "data_converter",
-        "type": "node",
-        "child_configs": [
-          {
-            "name": "time_series",
-            "type": "leaf",
-            "other_args": {
-              "series_id_col": "series_id",
-              "date_col": "date",
-              "y_col": "y",
-              "regressor_cols": [],
-              "date_parser": "%Y-%m-%d"
-            },
-            "iterator_config": {
-              "name": "dataframe_sequence",
-              "args": {
-                "series_id_col": "series_id"
-              }
-          }
-          },
-           {
-            "name": "time_series_backtest",
-            "type": "leaf",
-            "other_args": {
-              "train_window_length": 12,
-              "max_test_window_length": 1
-            },
-            "iterator_config": {
-              "name": "data_sequence"
-          }
-          }
-        ],
-        "iterator_config": {
-          "name": "sequence"
-        }
+      ],
+      "iterator_config": {
+        "name": "sequence"
       }
+    },
+    {
+      "name": "data_visualisation",
+      "type": "node",
+      "child_configs": [
+        {
+          "name": "time_series",
+          "type": "leaf",
+          "other_args": {
+            "title": "Time Series Data - ",
+            "fig_size": [12, 6],
+            "x_label": "Date",
+            "y_label": "Y"
+          },
+          "iterator_config": {
+            "name": "data_sequence"
+          }
+        },
+        {
+          "name": "bar_graph",
+          "type": "leaf",
+          "other_args": {
+            "title": "Time Series Means",
+            "fig_size": [12, 6],
+            "x_label": "Time Series ID",
+            "y_label": "Mean"
+          }
+        },
+        {
+          "name": "auto_correlation",
+          "type": "leaf",
+          "other_args": {
+            "title": "Time Series Auto-Correlation",
+            "fig_size": [12, 6],
+            "x_label": "Period",
+            "y_label": "ACF"
+          },
+          "iterator_config": {
+            "name": "data_sequence"
+          }
+        }
+      ],
+      "iterator_config": {
+        "name": "parallel"
+      }
+    }
   ],
   "iterator_config": {
     "name": "sequence"

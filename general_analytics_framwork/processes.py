@@ -1,6 +1,6 @@
 import pandas as pd
 from general_analytics_framwork.base_processes import (
-    ParallelProcess,
+    ParallelAggregateProcess,
     SequenceProcess
 )
 from general_analytics_framwork.data_preparation.data_loaders import (
@@ -12,9 +12,12 @@ from general_analytics_framwork.data_preparation.data_converters import (
 from general_analytics_framwork.iterators import (
     SequenceIterator, DataSequenceIterator
 )
+from general_analytics_framwork.visualisation import (
+    DataVisualisationProcess
+)
 
 
-class DataLoaderComposite(ParallelProcess):
+class DataLoaderComposite(ParallelAggregateProcess):
 
     AVAILABLE_STRATEGIES = {
         "local": LocalDataLoader
@@ -65,3 +68,9 @@ class DataPreparationProcess(SequenceProcess):
 
         super().__init__(children=children, iterator=iterator)
 
+
+class DataPresentationProcess(SequenceProcess):
+    AVAILABLE_STRATEGIES = {
+        "data_preparation": DataPreparationProcess,
+        "data_visualisation": DataVisualisationProcess
+    }

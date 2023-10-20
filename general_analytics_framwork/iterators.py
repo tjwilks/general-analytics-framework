@@ -19,7 +19,7 @@ class SequenceIterator(AbstractIterator):
         return data
 
 
-class ParallelIterator(AbstractIterator):
+class ParallelAggregationIterator(AbstractIterator):
 
     def iterate(self, process, data=None):
         output = {}
@@ -33,7 +33,14 @@ class ParallelIterator(AbstractIterator):
         return output
 
 
-class DataSequenceIterator(AbstractIterator):
+class ParallelIterator(AbstractIterator):
+
+    def iterate(self, process, data):
+        for child in process.children:
+            child.run(data)
+
+
+class DataAggregationSequenceIterator(AbstractIterator):
 
     def iterate(self, process, data=None):
         output = []
@@ -43,7 +50,7 @@ class DataSequenceIterator(AbstractIterator):
         return output
 
 
-class DataframeSequenceIterator(AbstractIterator):
+class DataframeAggregationSequenceIterator(AbstractIterator):
 
     def __init__(self, series_id_col):
         self.series_id_col = series_id_col
@@ -55,3 +62,10 @@ class DataframeSequenceIterator(AbstractIterator):
             output_element = process(series_id, element)
             output.append(output_element)
         return output
+
+
+class DataSequenceIterator(AbstractIterator):
+
+    def iterate(self, process, data):
+        for element in data:
+            process(element)

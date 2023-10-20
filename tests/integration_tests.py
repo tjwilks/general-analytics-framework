@@ -1,4 +1,4 @@
-from general_analytics_framwork.processes import DataPreparationProcess
+from general_analytics_framwork.processes import DataPreparationProcess, DataPresentationProcess
 from general_analytics_framwork.process_builder import ProcessBuilder
 import sys
 from general_analytics_framwork.config import ConfigParser, NodeConfig
@@ -7,7 +7,7 @@ from general_analytics_framwork.iterators import (
 )
 
 AVAILABLE_PROCESSES = {
-    "data_preparation": DataPreparationProcess
+    "data_presentation": DataPresentationProcess
 }
 AVAILABLE_ITERATORS = {
     "sequence": SequenceIterator
@@ -21,8 +21,7 @@ def test_basic_process(config):
         AVAILABLE_PROCESSES,
         AVAILABLE_ITERATORS
     )
-    data = process.run()
-    print(data)
+    process.run()
 
 
 if __name__ == '__main__':
