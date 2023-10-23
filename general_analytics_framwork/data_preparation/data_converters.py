@@ -4,14 +4,7 @@ from general_analytics_framwork.datasets import (
 )
 
 
-class DataConverter(AbstractComponent):
-
-    def run(self, data):
-        output = self.iterate(self.convert, data)
-        return output
-
-
-class TimeseriesConverter(DataConverter):
+class TimeseriesConverter(AbstractComponent):
 
     def __init__(self, series_id_col, date_col, y_col, regressor_cols, date_parser):
         self.series_id_col = series_id_col
@@ -20,11 +13,11 @@ class TimeseriesConverter(DataConverter):
         self.regressor_cols = regressor_cols
         self.date_parser = date_parser
 
-    def iterate(self, process, data):
+    def run(self, data):
         output = []
         for series_id in data[self.series_id_col].unique():
             element = data[data[self.series_id_col] == series_id]
-            output_element = process(series_id, element)
+            output_element = self.convert(series_id, element)
             output.append(output_element)
         return output
 
@@ -41,16 +34,16 @@ class TimeseriesConverter(DataConverter):
         return time_series_dataset
 
 
-class TimeseriesBacktestConverter(DataConverter):
+class TimeseriesBacktestConverter(AbstractComponent):
 
     def __init__(self, train_window_length, max_test_window_length):
         self.train_window_length = train_window_length
         self.max_test_window_length = max_test_window_length
 
-    def iterate(self, process, data):
+    def run(self, data):
         output = []
         for element in data:
-            element_output = process(element)
+            element_output = self.convert(element)
             output.append(element_output)
         return output
 

@@ -18,7 +18,7 @@ class LocalDataLoader(AbstractComponent):
         self.source_type = source_type
         self.path = path
 
-    def run(self) -> pd.DataFrame:
+    def run(self, data=None) -> pd.DataFrame:
         """
         Load data from a source based on source type.
 

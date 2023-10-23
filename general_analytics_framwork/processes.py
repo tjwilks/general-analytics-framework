@@ -1,7 +1,7 @@
 import pandas as pd
 from general_analytics_framwork.base_processes import (
-    ParallelAggregateProcess,
-    SequenceProcess
+    SequenceProcess,
+    ParallelProcess
 )
 from general_analytics_framwork.data_preparation.data_loaders import (
     LocalDataLoader
@@ -22,7 +22,7 @@ from general_analytics_framwork.visualisation import (
 )
 
 
-class DataLoaderComposite(ParallelAggregateProcess):
+class DataLoaderComposite(SequenceProcess):
 
     AVAILABLE_STRATEGIES = {
         "local": LocalDataLoader
@@ -32,18 +32,26 @@ class DataLoaderComposite(ParallelAggregateProcess):
         self.joining_columns = joining_columns
         super().__init__(children=children)
 
-    def aggregate_results(self, output):
-        result = None
-        for child, dataset in output.items():
-            if result is None:
-                result = dataset
+    def run(self, data=None):
+        output = None
+        for child in self.children:
+            if data is not None:
+                child_output = child.run(data)
             else:
-                result = pd.merge(
-                    left=result,
-                    right=dataset,
-                    on=self.joining_columns,
-                    how='inner'
-                )
+                child_output = child.run()
+            output = self.aggregate_results(output, child_output)
+        return output
+
+    def aggregate_results(self, output, child_output):
+        if output is None:
+            result = child_output
+        else:
+            result = pd.merge(
+                left=output,
+                right=child_output,
+                on=self.joining_columns,
+                how='inner'
+            )
         return result
 
 
@@ -77,7 +85,7 @@ class ModellingProcess(SequenceProcess):
     }
 
 
-class DataVisualisationProcess(SequenceProcess):
+class DataVisualisationProcess(ParallelProcess):
     AVAILABLE_STRATEGIES = {
         "time_series": TimeseriesPlotter,
         "bar_graph": BarGraphPlotter,

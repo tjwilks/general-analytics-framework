@@ -8,13 +8,9 @@ from general_analytics_framwork.datasets import TimeseriesBacktestDataset
 class TimeSeriesModel(AbstractComponent):
 
     def run(self, data):
-        data = self.iterate(self.fit_predict, data)
-        return data
-
-    def iterate(self, process, data):
         for backtest_dataset in data:
             for window in backtest_dataset:
-                process(window)
+                self.fit_predict(window)
         return data
 
     def fit_predict(self, data: TimeseriesBacktestDataset):
