@@ -2,24 +2,23 @@ from abc import abstractmethod, ABC
 from typing import List, Optional, Dict, Union
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from general_analytics_framwork.base_processes import AbstractComponent
-from general_analytics_framwork.iterators import (
-    BacktestDatasetIterator
-)
 from general_analytics_framwork.datasets import TimeseriesBacktestDataset
 
 
 class TimeSeriesModel(AbstractComponent):
 
-    AVAILABLE_ITERATORS = {
-        "backtest_dataset": BacktestDatasetIterator
-    }
-
     def run(self, data):
-        data = self.iterator.iterate(self.fit_predict, data)
+        data = self.iterate(self.fit_predict, data)
+        return data
+
+    def iterate(self, process, data):
+        for backtest_dataset in data:
+            for window in backtest_dataset:
+                process(window)
         return data
 
     def fit_predict(self, data: TimeseriesBacktestDataset):
-        self.fit(data.get_data("y", "train"), data.get_data("y", "regressors"))
+        self.fit(data.get_data("y", "train"), data.get_data("regressors", "train"))
         prediction = self.predict(data.window.test_window_length)
         data.add_prediction(self, data.window.index, prediction)
         return data
@@ -73,14 +72,12 @@ class RandomWalk(TimeSeriesModel):
 
     """
 
-    def __init__(self, iterator):
+    def __init__(self):
         """
         Initialize the Random Walk model.
         """
         self.last_observation_seen: Optional[float] = None
         self._accepts_regressors: bool = False
-        super().__init__(iterator=iterator)
-
 
     def fit(
         self,
@@ -138,7 +135,6 @@ class ARIMA(TimeSeriesModel):
 
     def __init__(
             self,
-            iterator,
             auto_regressive: int = 1,
             integrated: int = 0,
             moving_average: int = 0,
@@ -157,7 +153,6 @@ class ARIMA(TimeSeriesModel):
         self.trend_type = trend_type
         self.model: Optional[SARIMAX] = None
         self._accepts_regressors: bool = False
-        super().__init__(iterator=iterator)
 
     def fit(
         self,

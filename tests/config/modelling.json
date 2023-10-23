@@ -19,9 +19,6 @@
                 }
               }
             ],
-            "iterator_config": {
-                "name": "parallel_aggregation"
-            },
             "other_args": {
               "joining_columns": ["series_id","date"]
             }
@@ -39,13 +36,7 @@
                   "y_col": "y",
                   "regressor_cols": [],
                   "date_parser": "%Y-%m-%d"
-                },
-                "iterator_config": {
-                  "name": "dataframe_aggregation_sequence",
-                  "args": {
-                    "series_id_col": "series_id"
-                  }
-              }
+                }
               },
               {
                 "name": "time_series_backtest",
@@ -53,20 +44,11 @@
                 "other_args": {
                   "train_window_length": 110,
                   "max_test_window_length": 1
-                },
-                "iterator_config": {
-                  "name": "data_aggregation_sequence"
+                }
               }
-              }
-            ],
-            "iterator_config": {
-              "name": "sequence"
-            }
+            ]
           }
-      ],
-      "iterator_config": {
-        "name": "sequence"
-      }
+      ]
     },
     {
       "name": "modelling",
@@ -76,9 +58,6 @@
           "name": "random_walk",
           "type": "leaf",
           "other_args": {
-          },
-          "iterator_config": {
-            "name": "backtest_dataset"
           }
         },
         {
@@ -88,18 +67,9 @@
             "auto_regressive": 1,
             "integrated": 0,
             "moving_average": 0
-          },
-          "iterator_config": {
-            "name": "backtest_dataset"
           }
         }
-      ],
-      "iterator_config": {
-        "name": "sequence"
-      }
+      ]
     }
-  ],
-  "iterator_config": {
-    "name": "sequence"
-  }
+  ]
 }

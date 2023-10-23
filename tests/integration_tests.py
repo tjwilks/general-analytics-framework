@@ -2,16 +2,11 @@ from general_analytics_framwork.processes import DataPreparationProcess, ModelEx
 from general_analytics_framwork.process_builder import ProcessBuilder
 import sys
 from general_analytics_framwork.config import ConfigParser, NodeConfig
-from general_analytics_framwork.iterators import (
-    SequenceIterator
-)
+
 
 AVAILABLE_PROCESSES = {
     "data_presentation": DataPresentationProcess,
     "model_experimentation": ModelExperimentationProcess
-}
-AVAILABLE_ITERATORS = {
-    "sequence": SequenceIterator
 }
 
 
@@ -19,8 +14,7 @@ def test_basic_process(config):
     process_builder = ProcessBuilder()
     process = process_builder.build(
         config,
-        AVAILABLE_PROCESSES,
-        AVAILABLE_ITERATORS
+        AVAILABLE_PROCESSES
     )
     output = process.run()
     print(output)

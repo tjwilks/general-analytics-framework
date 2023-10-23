@@ -19,9 +19,6 @@
                 }
               }
             ],
-            "iterator_config": {
-                "name": "parallel_aggregation"
-            },
             "other_args": {
               "joining_columns": ["series_id","date"]
             }
@@ -39,23 +36,11 @@
                   "y_col": "y",
                   "regressor_cols": [],
                   "date_parser": "%Y-%m-%d"
-                },
-                "iterator_config": {
-                  "name": "dataframe_aggregation_sequence",
-                  "args": {
-                    "series_id_col": "series_id"
-                  }
+                }
               }
-              }
-            ],
-            "iterator_config": {
-              "name": "sequence"
-            }
+            ]
           }
-      ],
-      "iterator_config": {
-        "name": "sequence"
-      }
+      ]
     },
     {
       "name": "data_visualisation",
@@ -69,9 +54,6 @@
             "fig_size": [12, 6],
             "x_label": "Date",
             "y_label": "Y"
-          },
-          "iterator_config": {
-            "name": "data_sequence"
           }
         },
         {
@@ -92,18 +74,9 @@
             "fig_size": [12, 6],
             "x_label": "Period",
             "y_label": "ACF"
-          },
-          "iterator_config": {
-            "name": "data_sequence"
           }
         }
-      ],
-      "iterator_config": {
-        "name": "parallel"
-      }
+      ]
     }
-  ],
-  "iterator_config": {
-    "name": "sequence"
-  }
+  ]
 }
