@@ -50,6 +50,15 @@ class DataAggregationSequenceIterator(AbstractIterator):
         return output
 
 
+class BacktestDatasetIterator(AbstractIterator):
+
+    def iterate(self, process, data):
+        for backtest_dataset in data:
+            for window in backtest_dataset:
+                process(window)
+        return data
+
+
 class DataframeAggregationSequenceIterator(AbstractIterator):
 
     def __init__(self, series_id_col):

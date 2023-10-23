@@ -41,7 +41,7 @@ class BacktestWindow:
     """
     def __init__(self,
                  n_obs: int,
-                 train_window_len: int,
+                 train_window_length: int,
                  max_test_window_length: int
                  ) -> None:
         """
@@ -52,26 +52,21 @@ class BacktestWindow:
         :param max_test_window_length: The maximum length of the test window.
 
         """
-        max_time_series_index = n_obs - 1
-        max_requested_time_series_index = train_window_len
+
+        self.n_obs = n_obs
+        self.train_window_length = train_window_length
+        self.max_test_window_length = max_test_window_length
+        max_time_series_index = self.n_obs - 1
+        max_requested_time_series_index = self.train_window_length
         assert max_time_series_index >= max_requested_time_series_index, \
             "time series is too short to initialise window with requested " \
             "train_window_length"
-        self.test_end_index = n_obs - 1
-        self.test_start_index = n_obs - 1
-        self.train_end_index = n_obs - 2
-        self.train_start_index = n_obs - 1 - train_window_len
+        self.test_end_index = self.n_obs - 1
+        self.test_start_index = self.n_obs - 1
+        self.train_end_index = self.n_obs - 2
+        self.train_start_index = self.n_obs - 1 - self.train_window_length
         self.test_window_length = 1
-        self.max_test_window_length = max_test_window_length
         self.index = 0
-
-    def is_not_last(self):
-        """
-        Check if the current window is not the last window in the time series.
-
-        :return: True if the current window is not the last; otherwise, False.
-        """
-        return self.train_start_index != 0
 
     def next(self):
         """
@@ -80,8 +75,9 @@ class BacktestWindow:
         :raises AssertionError: If the start index of the training window is
         less than 0.
         """
-        assert self.is_not_last(), "Start index of training window can not " \
-                                   "be less than 0"
+
+        assert self.train_start_index != 0, \
+            "Start index of training window can not be less than 0"
         self.train_start_index -= 1
         self.train_end_index -= 1
         if self.test_window_length == self.max_test_window_length:
@@ -110,13 +106,24 @@ class BacktestWindow:
 class TimeseriesBacktestDataset:
 
     def __init__(self, time_series_dataset, train_window_length,
-                 max_test_window_length):
+                 max_test_window_length, predictions=None):
         self.time_series_dataset = time_series_dataset
         self.window = BacktestWindow(
             n_obs=len(time_series_dataset.dates),
-            train_window_len=train_window_length,
+            train_window_length=train_window_length,
             max_test_window_length=max_test_window_length
         )
+        if predictions:
+            self.predictions = predictions
+        else:
+            self.predictions = {}
+
+    def add_prediction(self, model, window_index, prediction):
+        if model in self.predictions.keys():
+            self.predictions[model][window_index] = prediction
+        else:
+            self.predictions[model] = {window_index: prediction}
+
 
     def _get_start_and_end_index(self, train_or_test):
         """
@@ -163,26 +170,15 @@ class TimeseriesBacktestDataset:
             raise ValueError("requested_data must be 'y', 'dates' "
                              "or regressors")
 
-    def get_data_for_forecast(self):
-        """
-        Get the data required for forecasting for the current window.
+    def __iter__(self):
+        return self
 
-        :return: A dictionary containing the data required for forecasting.
-        """
-        data_for_forecast = {
-            "series_id": self.time_series_dataset.series_id,
-            "y_train": self.get_data("y", "train"),
-            "y_test": self.get_data("y", "test"),
-            "dates_train": self.get_data("dates", "train"),
-            "dates_test": self.get_data("dates", "test"),
-            "regressors_train": self.get_data("regressors", 'train'),
-            "regressors_test": self.get_data("regressors", 'test'),
-            "window_index": self.window.index
-         }
-        return data_for_forecast
-
-    def next_window(self):
+    def __next__(self):
         """
         Move the backtest window to the next position in the time series.
         """
-        self.window.next()
+        if self.window.train_start_index == 0:
+            raise StopIteration
+        else:
+            self.window.next()
+            return self

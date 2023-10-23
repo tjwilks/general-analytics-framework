@@ -15,6 +15,10 @@ from general_analytics_framwork.iterators import (
 from general_analytics_framwork.visualisation import (
     DataVisualisationProcess
 )
+from general_analytics_framwork.modelling import (
+    RandomWalk,
+    ARIMA
+)
 
 
 class DataLoaderComposite(ParallelAggregateProcess):
@@ -69,8 +73,23 @@ class DataPreparationProcess(SequenceProcess):
         super().__init__(children=children, iterator=iterator)
 
 
+class ModellingProcess(SequenceProcess):
+    AVAILABLE_STRATEGIES = {
+        "random_walk": RandomWalk,
+        "arima": ARIMA
+    }
+
+
 class DataPresentationProcess(SequenceProcess):
     AVAILABLE_STRATEGIES = {
         "data_preparation": DataPreparationProcess,
         "data_visualisation": DataVisualisationProcess
     }
+
+
+class ModelExperimentationProcess(SequenceProcess):
+    AVAILABLE_STRATEGIES = {
+        "data_preparation": DataPreparationProcess,
+        "modelling": ModellingProcess
+    }
+

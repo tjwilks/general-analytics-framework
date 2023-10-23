@@ -1,0 +1,105 @@
+{
+  "name": "model_experimentation",
+  "type": "node",
+  "child_configs": [
+    {
+      "name": "data_preparation",
+      "type": "node",
+      "child_configs": [
+          {
+            "name": "data_loader",
+            "type": "node",
+            "child_configs": [
+              {
+                "name": "local",
+                "type": "leaf",
+                "other_args": {
+                  "source_type": "csv",
+                  "path": "data/test_time_series_data.csv"
+                }
+              }
+            ],
+            "iterator_config": {
+                "name": "parallel_aggregation"
+            },
+            "other_args": {
+              "joining_columns": ["series_id","date"]
+            }
+          },
+          {
+            "name": "data_converter",
+            "type": "node",
+            "child_configs": [
+              {
+                "name": "time_series",
+                "type": "leaf",
+                "other_args": {
+                  "series_id_col": "series_id",
+                  "date_col": "date",
+                  "y_col": "y",
+                  "regressor_cols": [],
+                  "date_parser": "%Y-%m-%d"
+                },
+                "iterator_config": {
+                  "name": "dataframe_aggregation_sequence",
+                  "args": {
+                    "series_id_col": "series_id"
+                  }
+              }
+              },
+              {
+                "name": "time_series_backtest",
+                "type": "leaf",
+                "other_args": {
+                  "train_window_length": 110,
+                  "max_test_window_length": 1
+                },
+                "iterator_config": {
+                  "name": "data_aggregation_sequence"
+              }
+              }
+            ],
+            "iterator_config": {
+              "name": "sequence"
+            }
+          }
+      ],
+      "iterator_config": {
+        "name": "sequence"
+      }
+    },
+    {
+      "name": "modelling",
+      "type": "node",
+      "child_configs": [
+        {
+          "name": "random_walk",
+          "type": "leaf",
+          "other_args": {
+          },
+          "iterator_config": {
+            "name": "backtest_dataset"
+          }
+        },
+        {
+          "name": "arima",
+          "type": "leaf",
+          "other_args": {
+            "auto_regressive": 1,
+            "integrated": 0,
+            "moving_average": 0
+          },
+          "iterator_config": {
+            "name": "backtest_dataset"
+          }
+        }
+      ],
+      "iterator_config": {
+        "name": "sequence"
+      }
+    }
+  ],
+  "iterator_config": {
+    "name": "sequence"
+  }
+}
