@@ -18,7 +18,8 @@ from general_analytics_framwork.modelling import (
 from general_analytics_framwork.visualisation import (
     TimeseriesPlotter,
     BarGraphPlotter,
-    AutocorrelationPlotter
+    AutocorrelationPlotter,
+    ForecastGraphPlotter
 )
 
 
@@ -93,6 +94,12 @@ class DataVisualisationProcess(ParallelProcess):
     }
 
 
+class ForecastDataVisualisationProcess(ParallelProcess):
+    AVAILABLE_STRATEGIES = {
+        "forecast_plot": ForecastGraphPlotter
+    }
+
+
 class DataPresentationProcess(SequenceProcess):
     AVAILABLE_STRATEGIES = {
         "data_preparation": DataPreparationProcess,
@@ -103,5 +110,6 @@ class DataPresentationProcess(SequenceProcess):
 class ModelExperimentationProcess(SequenceProcess):
     AVAILABLE_STRATEGIES = {
         "data_preparation": DataPreparationProcess,
-        "modelling": ModellingProcess
+        "modelling": ModellingProcess,
+        "forecast_data_visualisation": ForecastDataVisualisationProcess
     }

@@ -68,23 +68,22 @@ class BacktestWindow:
         self.test_window_length = 1
         self.index = 0
 
-    def next(self):
+    def move(self, move_amount):
         """
         Move the window to the next position in the time series.
 
         :raises AssertionError: If the start index of the training window is
         less than 0.
         """
-
-        assert self.train_start_index != 0, \
-            "Start index of training window can not be less than 0"
-        self.train_start_index -= 1
-        self.train_end_index -= 1
-        if self.test_window_length == self.max_test_window_length:
-            self.test_end_index -= 1
-        self.test_start_index -= 1
+        self.train_start_index += move_amount
+        self.train_end_index += move_amount
+        self.test_end_index += move_amount
+        self.test_start_index += move_amount
         self.test_window_length = self.test_end_index - self.test_start_index + 1
-        self.index += 1
+        self.index -= move_amount
+
+    def move_to_index(self, window_index):
+        self.move(self.index-window_index)
 
     def get_train_index(self):
         """
@@ -118,12 +117,11 @@ class TimeseriesBacktestDataset:
         else:
             self.predictions = {}
 
-    def add_prediction(self, model, window_index, prediction):
-        if model in self.predictions.keys():
-            self.predictions[model][window_index] = prediction
+    def add_prediction(self, window_index, model, prediction):
+        if window_index in self.predictions.keys():
+            self.predictions[window_index][model] = prediction
         else:
-            self.predictions[model] = {window_index: prediction}
-
+            self.predictions[window_index] = {model: prediction}
 
     def _get_start_and_end_index(self, train_or_test):
         """
@@ -178,7 +176,8 @@ class TimeseriesBacktestDataset:
         Move the backtest window to the next position in the time series.
         """
         if self.window.train_start_index == 0:
+            self.window.move_to_index(0)
             raise StopIteration
         else:
-            self.window.next()
+            self.window.move(-1)
             return self

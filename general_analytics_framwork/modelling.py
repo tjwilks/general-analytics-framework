@@ -16,11 +16,12 @@ class TimeSeriesModel(AbstractComponent):
     def fit_predict(self, data: TimeseriesBacktestDataset):
         self.fit(data.get_data("y", "train"), data.get_data("regressors", "train"))
         prediction = self.predict(data.window.test_window_length)
-        data.add_prediction(self, data.window.index, prediction)
+        data.add_prediction(data.window.index, self, prediction)
         return data
 
     @abstractmethod
     def get_reference(self) -> str:
+
         """
         Get a reference string for the model.
 
