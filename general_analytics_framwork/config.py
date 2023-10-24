@@ -8,7 +8,7 @@ class NodeConfig:
         self.name = name
         self.children = []
         for child_config in child_configs:
-            if child_config["type"] in ["node", "composite"]:
+            if child_config["type"] == "node":
                 child = NodeConfig(**child_config)
             elif child_config["type"] == "leaf":
                 child = LeafConfig(**child_config)
