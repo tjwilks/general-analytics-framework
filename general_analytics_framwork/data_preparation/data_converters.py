@@ -1,10 +1,25 @@
 from general_analytics_framwork.base_processes import AbstractComponent
 from general_analytics_framwork.datasets import (
-    TimeseriesDataset, TimeseriesBacktestDataset
+    TimeseriesDataset, TimeseriesBacktestDataset, ResultsDataset
 )
+from abc import abstractmethod
+
+class AbstractDataConverter(AbstractComponent):
+
+    def run(self, data):
+        output = []
+        for element in data:
+            element_output = self.convert(element)
+            output.append(element_output)
+        return output
+
+    @abstractmethod
+    def convert(self, element):
+        raise NotImplementedError
 
 
-class TimeseriesConverter(AbstractComponent):
+
+class TimeseriesConverter(AbstractDataConverter):
 
     def __init__(self, series_id_col, date_col, y_col, regressor_cols, date_parser):
         self.series_id_col = series_id_col
@@ -34,23 +49,29 @@ class TimeseriesConverter(AbstractComponent):
         return time_series_dataset
 
 
-class TimeseriesBacktestConverter(AbstractComponent):
+class TimeseriesBacktestConverter(AbstractDataConverter):
 
     def __init__(self, train_window_length, max_test_window_length):
         self.train_window_length = train_window_length
         self.max_test_window_length = max_test_window_length
-
-    def run(self, data):
-        output = []
-        for element in data:
-            element_output = self.convert(element)
-            output.append(element_output)
-        return output
 
     def convert(self, data):
         data = TimeseriesBacktestDataset(
             time_series_dataset=data,
             train_window_length=self.train_window_length,
             max_test_window_length=self.max_test_window_length
+        )
+        return data
+
+
+class BacktestResultsConverter(AbstractDataConverter):
+
+    def __init__(self, error_function):
+        self.error_function = error_function
+
+    def convert(self, data):
+        data = ResultsDataset(
+            backtest_dataset=data,
+            error_function=self.error_function
         )
         return data

@@ -7,7 +7,7 @@ from general_analytics_framwork.data_preparation.data_loaders import (
     LocalDataLoader
 )
 from general_analytics_framwork.data_preparation.data_converters import (
-    TimeseriesConverter, TimeseriesBacktestConverter
+    TimeseriesConverter, TimeseriesBacktestConverter, ResultsConverter
 )
 
 from general_analytics_framwork.modelling import (
@@ -19,7 +19,8 @@ from general_analytics_framwork.visualisation import (
     TimeseriesPlotter,
     BarGraphPlotter,
     AutocorrelationPlotter,
-    ForecastGraphPlotter
+    ForecastGraphPlotter,
+    ForecastBarGraphPlotter
 )
 
 
@@ -96,7 +97,8 @@ class DataVisualisationProcess(ParallelProcess):
 
 class ForecastDataVisualisationProcess(ParallelProcess):
     AVAILABLE_STRATEGIES = {
-        "forecast_plot": ForecastGraphPlotter
+        "forecast_plot": ForecastGraphPlotter,
+        "forecast_error_bar_plot": ForecastBarGraphPlotter
     }
 
 
@@ -111,5 +113,6 @@ class ModelExperimentationProcess(SequenceProcess):
     AVAILABLE_STRATEGIES = {
         "data_preparation": DataPreparationProcess,
         "modelling": ModellingProcess,
+        "results_converter": ResultsConverter,
         "forecast_data_visualisation": ForecastDataVisualisationProcess
     }

@@ -1,5 +1,7 @@
 from typing import List, Union, Dict
 from datetime import datetime
+import numpy as np
+from sklearn import metrics
 
 
 class TimeseriesDataset:
@@ -117,11 +119,13 @@ class TimeseriesBacktestDataset:
         else:
             self.predictions = {}
 
-    def add_prediction(self, window_index, model, prediction):
-        if window_index in self.predictions.keys():
-            self.predictions[window_index][model] = prediction
-        else:
-            self.predictions[window_index] = {model: prediction}
+    def add_prediction(self, model, prediction):
+        self.predictions[model.get_reference()] = {
+            self.window.index: {
+                "prediction": prediction,
+                "model": model
+            }
+        }
 
     def _get_start_and_end_index(self, train_or_test):
         """
@@ -139,7 +143,7 @@ class TimeseriesBacktestDataset:
         else:
             raise ValueError("train_or_test must be either 'train' or 'test'")
 
-    def get_data(self, requested_data, train_or_test):
+    def get_data(self, requested_data, train_or_test, window_index=None):
         """
         Get the requested data (target values, dates, or regressors) for the
         specified window.
@@ -152,21 +156,27 @@ class TimeseriesBacktestDataset:
         :raises ValueError: If an invalid value for requested_data or
         train_or_test is provided.
         """
+        if window_index:
+            current_window_index = self.window.index
+            self.window.move_to_index(window_index=window_index)
         start_index, end_index = self._get_start_and_end_index(train_or_test)
         if requested_data == "y":
-            return self.time_series_dataset.y_data[start_index: end_index+1]
+            data = self.time_series_dataset.y_data[start_index: end_index+1]
         elif requested_data == "dates":
-            return self.time_series_dataset.dates[start_index: end_index+1]
+            data = self.time_series_dataset.dates[start_index: end_index+1]
         elif requested_data == "regressors":
             if self.time_series_dataset.regressor_data:
-                return {regressor_name: regressor[start_index: end_index+1]
+                data = {regressor_name: regressor[start_index: end_index+1]
                         for regressor_name, regressor
                         in self.time_series_dataset.regressor_data.items()}
             else:
-                return None
+                data = None
         else:
             raise ValueError("requested_data must be 'y', 'dates' "
                              "or regressors")
+        if window_index:
+            self.window.move_to_index(current_window_index)
+        return data
 
     def __iter__(self):
         return self
@@ -181,3 +191,85 @@ class TimeseriesBacktestDataset:
         else:
             self.window.move(-1)
             return self
+
+
+class ResultsDataset:
+
+    AVAILABLE_ERROR_FUNCTIONS = {
+        "MSE": metrics.mean_squared_error,
+        "MAE": metrics.mean_absolute_error
+    }
+    AVAILABLE_ERROR_AVERAGING_FUNCTIONS = {
+        "mean": np.mean,
+        "median": np.median
+    }
+
+    def __init__(
+            self,
+            backtest_dataset: TimeseriesBacktestDataset,
+            error_function,
+            error_averaging_function
+    ):
+        self.backtest_dataset = backtest_dataset
+        self.error_function = self.AVAILABLE_ERROR_FUNCTIONS[
+            error_function
+        ]
+        self.error_averaging_function = self.AVAILABLE_ERROR_AVERAGING_FUNCTIONS[
+            error_averaging_function
+        ]
+
+    def get_model_error(self, model_references=None):
+        if not model_references:
+            model_references = self.backtest_dataset.predictions.keys()
+        model_error = {
+            model_reference: self.error_averaging_function(
+                self.get_all_window_model_error(model_reference).values()
+            )
+            for model_reference in model_references
+        }
+        return model_error
+
+    def get_all_window_model_error(self, model_reference):
+        model_predictions = self.backtest_dataset.predictions[model_reference]
+        all_window_model_error = {
+            self.backtest_dataset.get_data("dates", "test", window_index)[0]:
+                self.error_function(
+                    prediction,
+                    self.backtest_dataset.get_data("y", "test", window_index)
+            )
+            for window_index, prediction in model_predictions
+        }
+        return all_window_model_error
+
+    def get_single_window_model_error(self, model_reference, window):
+        all_window_model_error = self.get_all_window_model_error(
+            model_reference
+        )
+        single_window_model_error = all_window_model_error[window]
+        return single_window_model_error
+
+
+class WindowPredictionDataset:
+
+    AVAILABLE_ERROR_FUNCTIONS = {
+        "MSE": metrics.mean_squared_error,
+        "MAE": metrics.mean_absolute_error
+    }
+
+    def __init__(self, window_prediction_data, error_function):
+        self.model_data = {
+            data["model"]:
+            {"prediction": data['prediction'], 'y_test': data['y_test']}
+            for data in window_prediction_data
+        }
+        self.error_function = self.AVAILABLE_ERROR_FUNCTIONS[error_function]
+
+    def calculate_model_error(self):
+        model_error = {
+            data["model"]: self.error_function(
+                data['prediction'],
+                data['y_test']
+            )
+            for data in self.model_data
+        }
+        return model_error

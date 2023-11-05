@@ -43,7 +43,7 @@
                 "type": "leaf",
                 "other_args": {
                   "train_window_length": 12,
-                  "max_test_window_length": 1
+                  "max_test_window_length": 2
                 }
               }
             ]
@@ -76,13 +76,14 @@
       "type": "node",
       "child_configs": [
         {
-          "name": "forecast_plot",
+          "name": "forecast_error_bar_plot",
           "type": "leaf",
           "other_args": {
-            "title": "Forecast Plot",
+            "title": "Forecast Error Bar Plot",
             "fig_size": [12, 6],
-            "x_label": "Date",
-            "y_label": "Value"
+            "x_label": "Model",
+            "y_label": "Error",
+            "aggregation_level": "full"
           }
         }
       ]

@@ -67,12 +67,12 @@ class BarGraphPlotter(DataPlotter):
             "series_id": [ts.series_id for ts in time_series_list],
             "mean_y": [pd.Series(ts.y_data).mean() for ts in time_series_list]
         })
-        plot = self.plot(data)
+        plot = self.plot(data, x="series_id", y="mean_y")
         return plot
 
-    def plot(self, data):
+    def plot(self, data, x, y):
         fig, ax = plt.subplots(figsize=self.fig_size)
-        sns.barplot(x="series_id", y="mean_y", data=data, ax=ax)
+        sns.barplot(x=x, y=y, data=data, ax=ax)
         ax.set_title(self.title)
         ax.set_xlabel(self.x_label)
         ax.set_ylabel(self.y_label)
@@ -128,9 +128,12 @@ class ForecastGraphPlotter(DataPlotter):
         train_period_last_y_point = backtest_dataset.get_data("y", "train")[-1]
 
         forecasts_data = pd.DataFrame({
-            model.get_reference(): [train_period_last_y_point, *prediction]
-            for model, prediction in
-            backtest_dataset.predictions[backtest_dataset.window.index].items()
+            window_prediction_data["model"].get_reference(): [
+                train_period_last_y_point,
+                *window_prediction_data["prediction"]
+            ]
+            for window_prediction_data in
+            backtest_dataset.predictions[backtest_dataset.window.index]
         })
         forecasts_data['date'] = get_test_period_data("dates")
         forecasts_data = pd.melt(
@@ -159,3 +162,81 @@ class ForecastGraphPlotter(DataPlotter):
         ax.set_ylabel(self.y_label)
         fig.show()
         return fig, ax
+
+
+class ForecastBarGraphPlotter(BarGraphPlotter):
+
+    def __init__(
+            self,
+            title,
+            fig_size,
+            x_label,
+            y_label,
+            aggregation_level,
+            start_index=None,
+            end_index=None
+    ):
+        self.start_index = start_index
+        self.end_index = end_index
+        self.aggregation_level = aggregation_level
+        super().__init__(title, fig_size, x_label, y_label)
+
+    def run(self, backtest_datasets):
+        error_df = self.get_model_error_df(backtest_datasets)
+        if self.aggregation_level == "total_model_error":
+            error_df = error_df.groupby(['model'], as_index=False)[ 'error'].sum()
+        elif self.aggregation_level == "dataset_model_error":
+            error_df = error_df.groupby(['model', 'series_id'], as_index=False)['error'].sum()
+        self.plot(error_df, "model", "error")
+
+    def get_all_backtest_dataset_error_dfs(self, backtest_datasets):
+        all_backtest_dataset_error_dfs = {}
+        for backtest_dataset in backtest_datasets:
+            backtest_dataset_error_dfs = self.get_backtest_dataset_error_dfs(
+                backtest_dataset
+            )
+            all_backtest_dataset_error_dfs[
+                backtest_dataset.time_series_dataset.series_id] = \
+                backtest_dataset_error_dfs
+        return all_backtest_dataset_error_dfs
+
+    def get_backtest_dataset_error_dfs(self, backtest_dataset):
+        window_range = self.get_window_range(backtest_dataset)
+        backtest_dataset_error_dfs = []
+        for window_index in window_range:
+            window_error_df = self.get_window_error_df(
+                backtest_dataset,
+                window_index
+            )
+            backtest_dataset_error_dfs.append(window_error_df)
+        return backtest_dataset_error_dfs
+
+    def get_window_error_df(self, backtest_dataset, window_index):
+        window_error_df = pd.DataFrame(
+            backtest_dataset.predictions[window_index]
+        ).explode(['prediction', 'y_test'])
+        window_error_df['model'] = window_error_df['model'].apply(
+            lambda row: row.get_reference()
+        )
+        window_error_df['error'] = (
+                window_error_df["prediction"] -
+                window_error_df["y_test"]
+        )
+        window_error_df['window'] = window_index
+        return window_error_df
+
+    def plot(self, data, x, y):
+        fig, ax = plt.subplots(figsize=self.fig_size)
+        sns.barplot(x=x, y=y, data=data, ax=ax)
+        ax.set_title(self.title)
+        ax.set_xlabel(self.x_label)
+        ax.set_ylabel(self.y_label)
+        fig.show()
+        return fig
+
+    def get_window_range(self, backtest_dataset):
+        start_index = self.start_index if self.start_index else 1
+        end_index = self.end_index if self.end_index else \
+            max(backtest_dataset.predictions.keys())
+        window_range = range(start_index, end_index)
+        return window_range
