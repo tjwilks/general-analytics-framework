@@ -1,4 +1,4 @@
-from general_analytics_framwork.processes import DataPreparationProcess, ModelExperimentationProcess, DataPresentationProcess
+from general_analytics_framwork.processes import ModelExperimentationProcess, DataPresentationProcess
 from general_analytics_framwork.process_builder import ProcessBuilder
 from general_analytics_framwork.config import ConfigParser, NodeConfig
 
@@ -23,6 +23,5 @@ def test_process(config_file_path):
 
 
 if __name__ == '__main__':
-    output = test_process("config/modelling.json")
-    print(output)
-    test_process("config/data_presentation.json")
+    output = test_process("tests/config/modelling.json")
+    test_process("tests/config/data_presentation.json")

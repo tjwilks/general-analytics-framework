@@ -15,7 +15,7 @@
                 "type": "leaf",
                 "other_args": {
                   "source_type": "csv",
-                  "path": "data/test_time_series_data.csv"
+                  "path": "tests/data/test_time_series_data.csv"
                 }
               }
             ],
