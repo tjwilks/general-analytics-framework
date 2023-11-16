@@ -7,7 +7,7 @@ from general_analytics_framwork.data_preparation.data_loaders import (
     LocalDataLoader
 )
 from general_analytics_framwork.data_preparation.data_converters import (
-    TimeseriesConverter, TimeseriesBacktestConverter, ResultsConverter
+    TimeseriesConverter, TimeseriesBacktestConverter, BacktestResultsConverter
 )
 
 from general_analytics_framwork.modelling import (
@@ -113,6 +113,6 @@ class ModelExperimentationProcess(SequenceProcess):
     AVAILABLE_STRATEGIES = {
         "data_preparation": DataPreparationProcess,
         "modelling": ModellingProcess,
-        "results_converter": ResultsConverter,
+        "results_converter": BacktestResultsConverter,
         "forecast_data_visualisation": ForecastDataVisualisationProcess
     }
