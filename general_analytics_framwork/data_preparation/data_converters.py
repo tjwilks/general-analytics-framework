@@ -1,6 +1,6 @@
 from general_analytics_framwork.base_processes import AbstractComponent
 from general_analytics_framwork.datasets import (
-    TimeseriesDataset, TimeseriesBacktestDataset, ResultsDataset
+    TimeseriesDataset, TimeseriesBacktestDataset, TimeSeriesBacktestResultsDataset
 )
 from abc import abstractmethod
 
@@ -64,13 +64,13 @@ class TimeseriesBacktestConverter(AbstractDataConverter):
         return data
 
 
-class BacktestResultsConverter(AbstractDataConverter):
+class TimeseriesBacktestResultsConverter(AbstractDataConverter):
 
     def __init__(self, error_function):
         self.error_function = error_function
 
     def convert(self, data):
-        data = ResultsDataset(
+        data = TimeSeriesBacktestResultsDataset(
             backtest_dataset=data,
             error_function=self.error_function
         )

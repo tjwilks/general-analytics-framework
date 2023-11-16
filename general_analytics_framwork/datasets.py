@@ -193,7 +193,7 @@ class TimeseriesBacktestDataset:
             return self
 
 
-class ResultsDataset:
+class TimeSeriesBacktestResultsDataset:
 
     AVAILABLE_ERROR_FUNCTIONS = {
         "MSE": metrics.mean_squared_error,
