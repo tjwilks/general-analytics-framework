@@ -195,50 +195,47 @@ class TimeseriesBacktestDataset:
 
 class TimeSeriesBacktestResultsDataset:
 
-    AVAILABLE_ERROR_FUNCTIONS = {
-        "MSE": metrics.mean_squared_error,
-        "MAE": metrics.mean_absolute_error
-    }
-    AVAILABLE_ERROR_AVERAGING_FUNCTIONS = {
-        "mean": np.mean,
-        "median": np.median
-    }
-
     def __init__(
             self,
-            backtest_dataset: TimeseriesBacktestDataset,
-            error_function,
-            error_averaging_function
+            backtest_dataset: TimeseriesBacktestDataset
     ):
         self.backtest_dataset = backtest_dataset
-        self.error_function = self.AVAILABLE_ERROR_FUNCTIONS[
-            error_function
-        ]
-        self.error_averaging_function = self.AVAILABLE_ERROR_AVERAGING_FUNCTIONS[
-            error_averaging_function
-        ]
 
-    def get_model_error(self, model_references=None):
+    def get_model_error(
+            self,
+            error_averaging_function,
+            error_function,
+            model_references=None
+    ):
+        model_error = {}
         if not model_references:
             model_references = self.backtest_dataset.predictions.keys()
-        model_error = {
-            model_reference: self.error_averaging_function(
-                self.get_all_window_model_error(model_reference).values()
+
+        for model_reference in model_references:
+            all_window_model_error = self.get_all_window_model_error(
+                model_reference,
+                error_function
             )
-            for model_reference in model_references
-        }
+            error_array = list(all_window_model_error.values())
+            model_error[model_reference] =  error_averaging_function(
+                error_array
+            )
+
         return model_error
 
-    def get_all_window_model_error(self, model_reference):
+    def get_all_window_model_error(self, model_reference, error_function):
         model_predictions = self.backtest_dataset.predictions[model_reference]
-        all_window_model_error = {
-            self.backtest_dataset.get_data("dates", "test", window_index)[0]:
-                self.error_function(
-                    prediction,
-                    self.backtest_dataset.get_data("y", "test", window_index)
+        all_window_model_error = {}
+        for window_index, prediction_data in model_predictions.items():
+            first_date_of_forecast = self.backtest_dataset.get_data(
+                "dates",
+                "test",
+                window_index
+            )[0]
+            all_window_model_error[first_date_of_forecast] = error_function(
+                np.array(prediction_data['prediction']),
+                np.array(self.backtest_dataset.get_data("y", "test", window_index))
             )
-            for window_index, prediction in model_predictions
-        }
         return all_window_model_error
 
     def get_single_window_model_error(self, model_reference, window):

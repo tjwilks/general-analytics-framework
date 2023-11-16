@@ -66,12 +66,8 @@ class TimeseriesBacktestConverter(AbstractDataConverter):
 
 class TimeseriesBacktestResultsConverter(AbstractDataConverter):
 
-    def __init__(self, error_function):
-        self.error_function = error_function
-
     def convert(self, data):
         data = TimeSeriesBacktestResultsDataset(
-            backtest_dataset=data,
-            error_function=self.error_function
+            backtest_dataset=data
         )
         return data

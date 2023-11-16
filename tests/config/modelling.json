@@ -71,6 +71,12 @@
         }
       ]
     },
+   {
+    "name": "backtest_results_converter",
+    "type": "leaf",
+    "other_args": {
+    }
+   },
     {
       "name": "forecast_data_visualisation",
       "type": "node",
@@ -79,6 +85,8 @@
           "name": "forecast_error_bar_plot",
           "type": "leaf",
           "other_args": {
+            "error_function": "MSE",
+            "error_averaging_function": "mean",
             "title": "Forecast Error Bar Plot",
             "fig_size": [12, 6],
             "x_label": "Model",

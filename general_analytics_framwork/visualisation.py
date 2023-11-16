@@ -4,7 +4,9 @@ from general_analytics_framwork.base_processes import (
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 from pandas.plotting import autocorrelation_plot
+from sklearn import metrics
 
 
 class DataPlotter(AbstractComponent):
@@ -61,6 +63,15 @@ class AutocorrelationPlotter(DataPlotter):
 
 class BarGraphPlotter(DataPlotter):
 
+    AVAILABLE_ERROR_FUNCTIONS = {
+        "MSE": metrics.mean_squared_error,
+        "MAE": metrics.mean_absolute_error
+    }
+    AVAILABLE_ERROR_AVERAGING_FUNCTIONS = {
+        "mean": np.mean,
+        "median": np.median
+    }
+
     def run(self, time_series_list):
         data = pd.DataFrame({
             "series_id": [ts.series_id for ts in time_series_list],
@@ -82,6 +93,7 @@ class ForecastGraphPlotter(DataPlotter):
 
     def __init__(
             self,
+
             title,
             fig_size,
             x_label,
@@ -165,8 +177,19 @@ class ForecastGraphPlotter(DataPlotter):
 
 class ForecastBarGraphPlotter(BarGraphPlotter):
 
+    AVAILABLE_ERROR_FUNCTIONS = {
+        "MSE": metrics.mean_squared_error,
+        "MAE": metrics.mean_absolute_error
+    }
+    AVAILABLE_ERROR_AVERAGING_FUNCTIONS = {
+        "mean": np.mean,
+        "median": np.median
+    }
+
     def __init__(
             self,
+            error_function,
+            error_averaging_function,
             title,
             fig_size,
             x_label,
@@ -175,67 +198,80 @@ class ForecastBarGraphPlotter(BarGraphPlotter):
             start_index=None,
             end_index=None
     ):
+        self.error_function = self.AVAILABLE_ERROR_FUNCTIONS[
+            error_function
+        ]
+        self.error_averaging_function = self.AVAILABLE_ERROR_AVERAGING_FUNCTIONS[
+            error_averaging_function
+        ]
         self.start_index = start_index
         self.end_index = end_index
         self.aggregation_level = aggregation_level
         super().__init__(title, fig_size, x_label, y_label)
 
-    def run(self, backtest_datasets):
-        error_df = self.get_model_error_df(backtest_datasets)
-        if self.aggregation_level == "total_model_error":
-            error_df = error_df.groupby(['model'], as_index=False)[ 'error'].sum()
-        elif self.aggregation_level == "dataset_model_error":
-            error_df = error_df.groupby(['model', 'series_id'], as_index=False)['error'].sum()
-        self.plot(error_df, "model", "error")
-
-    def get_all_backtest_dataset_error_dfs(self, backtest_datasets):
-        all_backtest_dataset_error_dfs = {}
-        for backtest_dataset in backtest_datasets:
-            backtest_dataset_error_dfs = self.get_backtest_dataset_error_dfs(
-                backtest_dataset
+    def run(self, backtest_results_datasets):
+        for dataset in backtest_results_datasets:
+            error_df = dataset.get_model_error(
+                error_function=self.error_function,
+                error_averaging_function=self.error_averaging_function
             )
-            all_backtest_dataset_error_dfs[
-                backtest_dataset.time_series_dataset.series_id] = \
-                backtest_dataset_error_dfs
-        return all_backtest_dataset_error_dfs
+            print(error_df)
 
-    def get_backtest_dataset_error_dfs(self, backtest_dataset):
-        window_range = self.get_window_range(backtest_dataset)
-        backtest_dataset_error_dfs = []
-        for window_index in window_range:
-            window_error_df = self.get_window_error_df(
-                backtest_dataset,
-                window_index
-            )
-            backtest_dataset_error_dfs.append(window_error_df)
-        return backtest_dataset_error_dfs
 
-    def get_window_error_df(self, backtest_dataset, window_index):
-        window_error_df = pd.DataFrame(
-            backtest_dataset.predictions[window_index]
-        ).explode(['prediction', 'y_test'])
-        window_error_df['model'] = window_error_df['model'].apply(
-            lambda row: row.get_reference()
-        )
-        window_error_df['error'] = (
-                window_error_df["prediction"] -
-                window_error_df["y_test"]
-        )
-        window_error_df['window'] = window_index
-        return window_error_df
+#         if self.aggregation_level == "total_model_error":
+#             error_df = error_df.groupby(['model'], as_index=False)['error'].sum()
+#         elif self.aggregation_level == "dataset_model_error":
+#             error_df = error_df.groupby(['model', 'series_id'], as_index=False)['error'].sum()
+#         self.plot(error_df, "model", "error")
 
-    def plot(self, data, x, y):
-        fig, ax = plt.subplots(figsize=self.fig_size)
-        sns.barplot(x=x, y=y, data=data, ax=ax)
-        ax.set_title(self.title)
-        ax.set_xlabel(self.x_label)
-        ax.set_ylabel(self.y_label)
-        fig.show()
-        return fig
+#     def get_all_backtest_dataset_error_dfs(self, backtest_datasets):
+#         all_backtest_dataset_error_dfs = {}
+#         for backtest_dataset in backtest_datasets:
+#             backtest_dataset_error_dfs = self.get_backtest_dataset_error_dfs(
+#                 backtest_dataset
+#             )
+#             all_backtest_dataset_error_dfs[
+#                 backtest_dataset.time_series_dataset.series_id] = \
+#                 backtest_dataset_error_dfs
+#         return all_backtest_dataset_error_dfs
 
-    def get_window_range(self, backtest_dataset):
-        start_index = self.start_index if self.start_index else 1
-        end_index = self.end_index if self.end_index else \
-            max(backtest_dataset.predictions.keys())
-        window_range = range(start_index, end_index)
-        return window_range
+#     def get_backtest_dataset_error_dfs(self, backtest_dataset):
+#         window_range = self.get_window_range(backtest_dataset)
+#         backtest_dataset_error_dfs = []
+#         for window_index in window_range:
+#             window_error_df = self.get_window_error_df(
+#                 backtest_dataset,
+#                 window_index
+#             )
+#             backtest_dataset_error_dfs.append(window_error_df)
+#         return backtest_dataset_error_dfs
+
+#     def get_window_error_df(self, backtest_dataset, window_index):
+#         window_error_df = pd.DataFrame(
+#             backtest_dataset.predictions[window_index]
+#         ).explode(['prediction', 'y_test'])
+#         window_error_df['model'] = window_error_df['model'].apply(
+#             lambda row: row.get_reference()
+#         )
+#         window_error_df['error'] = (
+#                 window_error_df["prediction"] -
+#                 window_error_df["y_test"]
+#         )
+#         window_error_df['window'] = window_index
+#         return window_error_df
+
+#     def plot(self, data, x, y):
+#         fig, ax = plt.subplots(figsize=self.fig_size)
+#         sns.barplot(x=x, y=y, data=data, ax=ax)
+#         ax.set_title(self.title)
+#         ax.set_xlabel(self.x_label)
+#         ax.set_ylabel(self.y_label)
+#         fig.show()
+#         return fig
+
+#     def get_window_range(self, backtest_dataset):
+#         start_index = self.start_index if self.start_index else 1
+#         end_index = self.end_index if self.end_index else \
+#             max(backtest_dataset.predictions.keys())
+#         window_range = range(start_index, end_index)
+#         return window_range
