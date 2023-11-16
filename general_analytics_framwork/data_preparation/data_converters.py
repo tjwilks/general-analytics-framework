@@ -4,6 +4,7 @@ from general_analytics_framwork.datasets import (
 )
 from abc import abstractmethod
 
+
 class AbstractDataConverter(AbstractComponent):
 
     def run(self, data):
@@ -16,7 +17,6 @@ class AbstractDataConverter(AbstractComponent):
     @abstractmethod
     def convert(self, element):
         raise NotImplementedError
-
 
 
 class TimeseriesConverter(AbstractDataConverter):
