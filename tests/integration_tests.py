@@ -1,4 +1,4 @@
-from general_analytics_framwork.processes import ModelExperimentationProcess, DataPresentationProcess
+from general_analytics_framwork.processes import DataPreparationProcess, ModelExperimentationProcess, DataPresentationProcess
 from general_analytics_framwork.process_builder import ProcessBuilder
 from general_analytics_framwork.config import ConfigParser, NodeConfig
 
