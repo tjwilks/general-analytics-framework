@@ -1,5 +1,4 @@
 from general_analytics_framwork.base_processes import (
-    AbstractNode,
     AbstractComponent
 )
 import seaborn as sns
