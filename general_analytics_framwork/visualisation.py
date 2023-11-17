@@ -215,8 +215,13 @@ class ForecastBarGraphPlotter(BarGraphPlotter):
                 error_function=self.error_function,
                 error_averaging_function=self.error_averaging_function
             )
-            print(error_df)
 
+            # print("-------------------------------")
+            # error_df = dataset.get_all_window_model_error(
+            #     error_function=self.error_function,
+            #     error_averaging_function=self.error_averaging_function
+            # )
+            # print(error_df)
 
 #         if self.aggregation_level == "total_model_error":
 #             error_df = error_df.groupby(['model'], as_index=False)['error'].sum()
