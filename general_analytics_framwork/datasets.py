@@ -120,11 +120,11 @@ class TimeseriesBacktestDataset:
             self.predictions = {}
 
     def add_prediction(self, model, prediction):
-        self.predictions[model.get_reference()] = {
-            self.window.index: {
-                "prediction": prediction,
-                "model": model
-            }
+        if model.get_reference() not in self.predictions.keys():
+            self.predictions[model.get_reference()] = {}
+        self.predictions[model.get_reference()][self.window.index] = {
+            "prediction": prediction,
+            "model": model
         }
 
     def _get_start_and_end_index(self, train_or_test):
@@ -217,7 +217,7 @@ class TimeSeriesBacktestResultsDataset:
                 error_function
             )
             error_array = list(all_window_model_error.values())
-            model_error[model_reference] =  error_averaging_function(
+            model_error[model_reference] = error_averaging_function(
                 error_array
             )
 
